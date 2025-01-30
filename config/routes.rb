@@ -5,7 +5,7 @@ Rails.application.routes.draw do
   resources :products
 
   resource :cart, controller: "carts", only: %i[show create] do
-    # post "add_item", to: "carts/products#create"
+    post "add_item", to: "carts/products#create"
     # delete "/:product_id", to: "carts/products#destroy", as: :delete_cart_product
   end
 

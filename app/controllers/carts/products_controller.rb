@@ -1,6 +1,4 @@
-class CartsController < ApplicationController
-  before_action :current_cart
-
+class Carts::ProductsController < CartsController
   def create
     Cart::AddProductService.new(
       cart: @cart,
@@ -15,17 +13,5 @@ class CartsController < ApplicationController
     render_error('Produto não encontrado', :not_found)
   rescue Cart::AddProductService::CartUpdateFailedError
     render_error('Falha ao adicionar o produto ao carrinho', :unprocessable_entity)
-  end
-
-  def show
-    render json: @cart
-  end
-
-  private
-
-  def current_cart
-    @cart = Cart.find_by(id: session[:cart_id]) || Cart.create!(total_price: 0)
-    session[:cart_id] = @cart.id
-    @cart
   end
 end
