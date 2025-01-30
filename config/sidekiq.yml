@@ -7,3 +7,10 @@
   - mailers
   - active_storage_analysis
   - active_storage_purge
+
+scheduler:
+  enabled: true
+  schedule:
+    mark_cart_as_abandoned_job:
+      cron: "0 * * * *"  # run every hour at minute 0
+      class: "MarkCartAsAbandonedJob"
