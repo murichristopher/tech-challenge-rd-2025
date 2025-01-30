@@ -107,4 +107,58 @@ RSpec.describe "/cart", type: :request do
       end
     end
   end
+
+  describe "DELETE /cart/:product_id" do
+    context "when there is NO cart session" do
+      it "creates a cart, but no product is there to remove" do
+        expect do
+          delete "/cart/#{product.id}"
+        end.to change(Cart, :count).by(1)
+
+        expect(response).to have_http_status(:not_found)
+        expect(json_response).to eq(
+          "error" => "Produto não encontrado no carrinho"
+        )
+      end
+    end
+
+    context "when a cart already exists in the session" do
+      before do
+        post '/cart/add_item', params: { product_id: product.id, quantity: 2 }, as: :json
+        @cart_id = json_response["id"]
+      end
+
+      it "removes an existing product from the cart" do
+        expect(response).to have_http_status(:created)
+        expect(json_response["products"].size).to eq(1)
+
+        delete "/cart/#{product.id}"
+
+        expect(response).to have_http_status(:ok)
+        expect(json_response["id"]).to eq(@cart_id)
+        expect(json_response["products"]).to eq([])
+        expect(json_response["total_price"]).to eq(0)
+      end
+
+      it "returns an error if the product is not in the cart" do
+        delete "/cart/#{product2.id}"
+
+        expect(response).to have_http_status(:not_found)
+        expect(json_response).to eq(
+          "error" => "Produto não encontrado no carrinho"
+        )
+      end
+    end
+
+    context "when the product does not exist in the database" do
+      it "returns a not found error" do
+        delete "/cart/999999"
+
+        expect(response).to have_http_status(:not_found)
+        expect(json_response).to eq(
+          "error" => "Produto não encontrado"
+        )
+      end
+    end
+  end
 end
