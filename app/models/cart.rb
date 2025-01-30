@@ -4,6 +4,10 @@ class Cart < ApplicationRecord
 
   validates_numericality_of :total_price, greater_than_or_equal_to: 0
 
+  scope :active,       -> { where(abandoned_at: nil) }
+  scope :abandoned,    -> { where.not(abandoned_at: nil) }
+  scope :inactive_for, ->(time_ago) { where("updated_at < ?", time_ago) }
+
   def add_product!(product, quantity)
     transaction do
       item = cart_items.find_or_initialize_by(product: product)
