@@ -115,4 +115,45 @@ RSpec.describe "/cart", type: :request do
       end
     end
   end
+
+  describe "GET /cart" do
+    context "when there is NO cart in session" do
+      it "creates a new cart and returns it" do
+        expect do
+          get '/cart'
+        end.to change(Cart, :count).by(1)
+
+        expect(response).to have_http_status(:ok)
+        expect(json_response).to match(
+          "id" => be_an(Integer),
+          "products" => [],
+          "total_price" => 0
+        )
+      end
+    end
+
+    context "when a cart ALREADY exists in the session" do
+      before do
+        post '/cart', params: { product_id: product.id, quantity: 2 }, as: :json
+        @existing_cart_id = json_response["id"]
+      end
+
+      it "returns the existing cart with its products" do
+        get '/cart'
+        expect(response).to have_http_status(:ok)
+
+        expect(json_response["id"]).to eq(@existing_cart_id)
+        expect(json_response["products"]).to match([
+          {
+            "id" => product.id,
+            "name" => product.name,
+            "quantity" => 2,
+            "unit_price" => product.price,
+            "total_price" => (product.price * 2).round(2)
+          }
+        ])
+        expect(json_response["total_price"]).to eq((product.price * 2).round(2))
+      end
+    end
+  end
 end
