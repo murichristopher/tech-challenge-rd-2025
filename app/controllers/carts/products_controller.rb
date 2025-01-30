@@ -14,4 +14,16 @@ class Carts::ProductsController < CartsController
   rescue Cart::AddProductService::CartUpdateFailedError
     render_error('Falha ao adicionar o produto ao carrinho', :unprocessable_entity)
   end
+
+  def destroy
+    product = Product.find(params[:product_id])
+
+    if @cart.delete_product(product.id)
+      render json: @cart, status: :ok
+    else
+      render_error('Produto não encontrado no carrinho', :not_found)
+    end
+  rescue ActiveRecord::RecordNotFound
+    render_error('Produto não encontrado', :not_found)
+  end
 end

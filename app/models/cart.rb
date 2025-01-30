@@ -10,16 +10,25 @@ class Cart < ApplicationRecord
       item.quantity = item.persisted? ? item.quantity + quantity : quantity
       item.save!
       update_total_price!
-      save!
       item
     end
   rescue => e
     raise StandardError, "Failed to add product to the cart: #{e.message}"
   end
 
+  def delete_product(product_id)
+    item = cart_items.find_by(product_id: product_id)
+    return false unless item
+
+    item.destroy
+    update_total_price!
+    true
+  end
+
   private
 
   def update_total_price!
     self.total_price = cart_items.sum { |item| item.quantity * item.product.price }
+    save!
   end
 end
